@@ -101,57 +101,61 @@ function Install-ADIActiveDirectoryPowerShellModule
         $DownloadPath
     )
 
-    if (-not($InstallURL.Contains('msu')))
-    {
-        Write-Error -Message 'Not the right URL. Please Provide the url for the Windows Update Package.'
-        exit
-    }
-
-    $MachineOS = (Get-CimInstance -ClassName Win32_OperatingSystem).Name
-
     if ($PSBoundParameters.ContainsKey('IsWindowsServer'))
     {
+        $MachineOS = (Get-CimInstance -ClassName Win32_OperatingSystem).Name
         IF ($MachineOS -like "*Microsoft Windows Server*")
         {
-            Write-Output -InputObject 'You are on a Windows Server. No additional URL Needed.'
+            Write-Verbose -Message 'You are on a Windows Server. No additional URL Needed.'
             Add-WindowsFeature RSAT-AD-PowerShell
-            Break
         }
     }
 
-    Write-Output -InputObject 'You are on a Client OS. Download the RSAT Tools from the URL you provided.'
-
-    Write-Output -InputObject 'Check if downloadpath exist.'
-    if (-not(Test-Path $DownloadPath))
+    if ($PSBoundParameters.ContainsKey('InstallURL'))
     {
-        Write-Error ('Downloadpath {0} does not exist. Please Create It First' -f $DownloadPath)
-        exit
-    }
-
-    $rsatdownloadpath = Join-Path -Path $DownloadPath -ChildPath "rsat.msu"
-    if (Test-Path -Path $rsatdownloadpath)
-    {
-        Write-Output -InputObject 'Found a file with the name rsat.msu. No need to download the file anymore.'
-    }
-    else
-    {
-        Write-Output -InputObject ('rsat.msu was not found. Download the file from the URL {0}.' -f $InstallURL)
-        try
+        if (-not($InstallURL.Contains('msu')))
         {
-            Write-Output -InputObject ('Try to Download the RSAT Tools from the URL {0} to {1}' -f $InstallURL, $DownloadPath)
-            Invoke-WebRequest -Uri $InstallURL -UseBasicParsing -OutFile $rsatdownloadpath
-            Write-Output -InputObject ('Download of the RSAT Tools from the URL {0} to {1} was successful.' -f $InstallURL, $DownloadPath)
-        }
-        catch
-        {
-            Write-Error -Message 'There where problems with your internetconnection or you provided the wrong URL.'
+            Write-Error -Message 'Not the right URL. Please Provide the url for the Windows Update Package.'
             exit
         }
     }
 
-    $WusaArguments = $rsatdownloadpath + " /quiet"
-    Write-host "Installing RSAT for Windows 10 - please wait" -ForegroundColor Yellow
-    Start-Process -FilePath "C:\Windows\System32\wusa.exe" -ArgumentList $WusaArguments -Wait
+    if ($PSBoundParameters.ContainsKey('DownloadPath'))
+    {
+        Write-Verbose -Message 'You are on a Client OS. Download the RSAT Tools from the URL you provided.'
+
+        Write-Verbose -Message 'Check if downloadpath exist.'
+        if (-not(Test-Path $DownloadPath))
+        {
+            Write-Error ('Downloadpath {0} does not exist. Please Create It First' -f $DownloadPath)
+            exit
+        }
+
+        $rsatdownloadpath = Join-Path -Path $DownloadPath -ChildPath "rsat.msu"
+        if (Test-Path -Path $rsatdownloadpath)
+        {
+            Write-Verbose -Message 'Found a file with the name rsat.msu. No need to download the file anymore.'
+        }
+        else
+        {
+            Write-Verbose -Message ('rsat.msu was not found. Download the file from the URL {0}.' -f $InstallURL)
+            try
+            {
+                Write-Verbose -Message ('Try to Download the RSAT Tools from the URL {0} to {1}' -f $InstallURL, $DownloadPath)
+                Invoke-WebRequest -Uri $InstallURL -UseBasicParsing -OutFile $rsatdownloadpath
+                Write-Verbose -Message ('Download of the RSAT Tools from the URL {0} to {1} was successful.' -f $InstallURL, $DownloadPath)
+            }
+            catch
+            {
+                Write-Error -Message 'There where problems with your internetconnection or you provided the wrong URL.'
+                exit
+            }
+        }
+
+        $WusaArguments = $rsatdownloadpath + " /quiet"
+        Write-Verbose -Message "Installing RSAT for Windows 10 - please wait"
+        Start-Process -FilePath "C:\Windows\System32\wusa.exe" -ArgumentList $WusaArguments -Wait
+    }
 }
 
 function Get-ADIForest
