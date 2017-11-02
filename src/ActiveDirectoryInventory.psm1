@@ -1,6 +1,134 @@
 # Implement your module commands in this script.
 # Prefix = ADI
 
+#region Class
+class ActiveDirectoryInventoryClass
+{
+    [int]$ID
+
+    [System.Collections.ArrayList] GetApplicationPartitions([System.Collections.ArrayList]$ArrayList)
+    {
+        $DefaultArrayList = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        foreach ($Item in $ArrayList)
+        {
+            $row = [PSCustomObject]@{
+                ID            = $this.ID
+                PartitionName = $Item
+            }
+
+            $null = $DefaultArrayList.Add($row)
+            $this.ID++
+        }
+
+        return $DefaultArrayList
+    }
+
+    [System.Collections.ArrayList] GetDomainNamingMaster([System.Collections.ArrayList]$DomainNamingMasters)
+    {
+        $ArrDomainNamingMasters = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        foreach ($Item in $DomainNamingMasters)
+        {
+            $row = [PSCustomObject]@{
+                ID                 = $this.ID
+                DomainNamingMaster = $Item
+            }
+
+            $null = $ArrDomainNamingMasters.Add($row)
+            $this.ID++
+        }
+
+        return $ArrDomainNamingMasters
+    }
+
+    [System.Collections.ArrayList] GetDomainNamingMaster([System.String]$SingleDomainNamingMaster)
+    {
+        $ArrDomainNamingMasters = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        $row = [PSCustomObject]@{
+            ID                 = $this.ID
+            DomainNamingMaster = $SingleDomainNamingMaster
+        }
+
+        $null = $ArrDomainNamingMasters.Add($row)
+        return $ArrDomainNamingMasters
+    }
+
+    [System.Collections.ArrayList] GetCrossForestReferences([System.Collections.ArrayList]$CrossForestReferences)
+    {
+        $ArrCrossForestReference = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        foreach ($Item in $CrossForestReferences)
+        {
+            $row = [PSCustomObject]@{
+                ID                   = $this.ID
+                CrossForestReference = $Item
+            }
+
+            $null = $ArrCrossForestReference.Add($row)
+            $this.ID++
+        }
+
+        return $ArrCrossForestReference
+    }
+
+    [System.Collections.ArrayList] GetCrossForestReferences([System.String]$CrossForestReference)
+    {
+        $ArrCrossForestReference = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        $row = [PSCustomObject]@{
+            ID                   = $this.ID
+            CrossForestReference = $CrossForestReference
+        }
+
+        $null = $CrossForestReference.Add($row)
+        return $CrossForestReference
+    }
+
+    [System.Collections.ArrayList] GetDomains([System.Collections.ArrayList]$Domains)
+    {
+        $ArrDomains = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        foreach ($Item in $Domains)
+        {
+            $row = [PSCustomObject]@{
+                ID     = $this.ID
+                Domain = $Item
+            }
+
+            $null = $ArrDomains.Add($row)
+            $this.ID++
+        }
+
+        return $ArrDomains
+    }
+
+    [System.Collections.ArrayList] GetDomains([System.String]$Domain)
+    {
+        $ArrDomains = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        $row = [PSCustomObject]@{
+            ID     = $this.ID
+            Domain = $Domain
+        }
+
+        $null = $ArrDomains.Add($row)
+        return $ArrDomains
+    }
+}
+#endregion
+
+#Instanciate Class
+$class = New-Object -TypeName ActiveDirectoryInventoryClass
+
 function Test-ADIActiveDirectoryModule
 {
     <#
@@ -22,14 +150,13 @@ function Test-ADIActiveDirectoryModule
 
     if ([String]::IsNullOrEmpty(((Get-Module -ListAvailable).Where{$_.Name -eq 'ActiveDirectory'}).Name))
     {
-        return $false
+        return $true
     }
     else
     {
-        return $true
+        return $false
     }
 }
-
 function Install-ADIActiveDirectoryPowerShellModule
 {
     <#
@@ -157,27 +284,268 @@ function Install-ADIActiveDirectoryPowerShellModule
         Start-Process -FilePath "C:\Windows\System32\wusa.exe" -ArgumentList $WusaArguments -Wait
     }
 }
-
 function Get-ADIForest
 {
+    [CmdletBinding()]
     param
     (
-        [switch]$ApplicationPartitions
+        [Parameter(Mandatory = $true, ParameterSetName = 'AdditionalParameters')]
+        [string]$ServerName,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [string]$ForestName = (Get-ADForest).Name,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [pscredential]$Credential,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
+        [switch]$ApplicationPartitions,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
+        [switch]$DomainNamingMaster,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
+        [switch]$CrossForestReferences,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
+        [switch]$Domains
     )
 
-    if (Test-ADIActiveDirectoryModule -eq $false)
+    if (-not(Get-ChildItem -Path Function:\Test-ADIActiveDirectoryModule -ErrorAction SilentlyContinue))
     {
-        # TODO: Implement Install routine
-        # AD Module is not installed on Local Computer
-        Write-Error -Message "Please install the Active Directory PowerShell Module for your OS.
-        You can install the PowerShell Module for Active Directory by yourself or
-        run our Integraded CmdLet Install-ADIActiveDirectoryPowerShellModule."
-        exit
+        if (Test-ADIActiveDirectoryModule -eq $false)
+        {
+            Write-Error -Message "Please install the Active Directory PowerShell Module for your OS.
+                                  You can install the PowerShell Module for Active Directory by yourself or
+                                  run our Integraded CmdLet Install-ADIActiveDirectoryPowerShellModule."
+            exit
+        }
     }
 
-    if ($PSBoundParameters.ContainsKey('ApplicationsPartitions'))
+    if ($PSBoundParameters.ContainsKey('ApplicationPartitions'))
     {
-        #$AllAppPartitions =
+        $AllApplicationPartitions = New-Object -TypeName System.Collections.ArrayList
+        if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
+        {
+            $AllApplicationPartitions = (Get-ADForest -Identity $ForestName).ApplicationPartitions
+            $class.GetApplicationPartitions($AllApplicationPartitions)
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
+        {
+            if ($PSBoundParameters.ContainsKey('Credential'))
+            {
+                $AllApplicationPartitions = (Get-ADForest -Server $ServerName -Identity $ForestName -Credential $Credential).ApplicationPartitions
+                $class.GetApplicationPartitions($AllApplicationPartitions)
+            }
+            else
+            {
+                $AllApplicationPartitions = (Get-ADForest -Server $ServerName -Identity $ForestName).ApplicationPartitions
+                $class.GetApplicationPartitions($AllApplicationPartitions)
+            }
+        }
+    }
+
+    if ($PSBoundParameters.ContainsKey('DomainNamingMaster'))
+    {
+        $DomainNamingMasters = New-Object -TypeName System.Collections.ArrayList
+        if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
+        {
+            $DomainNamingMasters = (Get-ADForest -Identity $ForestName).DomainNamingMaster
+
+            if ($DomainNamingMasters.Count -gt 1)
+            {
+                $class.GetDomainNamingMaster($DomainNamingMasters)
+            }
+
+            if ($DomainNamingMasters.Count -eq 1)
+            {
+                $class.GetDomainNamingMaster($DomainNamingMasters)
+            }
+
+            if ($DomainNamingMasters.Count -eq 0)
+            {
+                Write-Output 'No DomainNamingMasters in your Domain.'
+            }
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
+        {
+            if ($PSBoundParameters.ContainsKey('Credential'))
+            {
+                $DomainNamingMasters = (Get-ADForest -Server $ServerName -Identity $ForestName -Credential $Credential).DomainNamingMaster
+
+                if ($DomainNamingMasters.Count -gt 1)
+                {
+                    $class.GetDomainNamingMaster($DomainNamingMasters)
+                }
+
+                if ($DomainNamingMasters.Count -eq 1)
+                {
+                    $class.GetDomainNamingMaster($DomainNamingMasters)
+                }
+
+                if ($DomainNamingMasters.Count -eq 0)
+                {
+                    Write-Output 'No DomainNamingMasters in your Domain.'
+                }
+            }
+            else
+            {
+                $DomainNamingMasters = (Get-ADForest -Server $ServerName -Identity $ForestName).DomainNamingMaster
+
+                if ($DomainNamingMasters.Count -gt 1)
+                {
+                    $class.GetDomainNamingMaster($DomainNamingMasters)
+                }
+
+                if ($DomainNamingMasters.Count -eq 1)
+                {
+                    $class.GetDomainNamingMaster($DomainNamingMasters)
+                }
+
+                if ($DomainNamingMasters.Count -eq 0)
+                {
+                    Write-Output 'No DomainNamingMasters in your Domain.'
+                }
+            }
+        }
+    }
+
+    if ($PSBoundParameters.ContainsKey('CrossForestReferences'))
+    {
+        $ArrCrossForestReferences = New-Object -TypeName System.Collections.ArrayList
+        if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
+        {
+            $ArrCrossForestReferences = (Get-ADForest -Identity $ForestName).CrossForestReferences
+
+            if ($ArrCrossForestReferences.Count -gt 1)
+            {
+                $class.GetCrossForestReferences($ArrCrossForestReferences)
+            }
+
+            if ($ArrCrossForestReferences.Count -eq 1)
+            {
+                $class.GetCrossForestReferences($ArrCrossForestReferences)
+            }
+
+            if ($ArrCrossForestReferences.Count -eq 0)
+            {
+                Write-Output 'No Trusts in your Domain.'
+            }
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
+        {
+            if ($PSBoundParameters.ContainsKey('Credential'))
+            {
+                $ArrCrossForestReferences = (Get-ADForest -Server $ServerName -Identity $ForestName -Credential $Credential).CrossForestReferences
+
+                if ($ArrCrossForestReferences.Count -gt 1)
+                {
+                    $class.GetCrossForestReferences($ArrCrossForestReferences)
+                }
+
+                if ($ArrCrossForestReferences.Count -eq 1)
+                {
+                    $class.GetCrossForestReferences($ArrCrossForestReferences)
+                }
+
+                if ($ArrCrossForestReferences.Count -eq 0)
+                {
+                    Write-Output 'No Trusts in your Domain.'
+                }
+            }
+            else
+            {
+                $ArrCrossForestReferences = (Get-ADForest -Server $ServerName -Identity $ForestName).CrossForestReferences
+
+                if ($ArrCrossForestReferences.Count -gt 1)
+                {
+                    $class.GetCrossForestReferences($ArrCrossForestReferences)
+                }
+
+                if ($ArrCrossForestReferences.Count -eq 1)
+                {
+                    $class.GetCrossForestReferences($ArrCrossForestReferences)
+                }
+
+                if ($ArrCrossForestReferences.Count -eq 0)
+                {
+                    Write-Output 'No Trusts in your Domain.'
+                }
+            }
+        }
+    }
+
+    if ($PSBoundParameters.ContainsKey('Domains'))
+    {
+        $ArrDomains = New-Object -TypeName System.Collections.ArrayList
+        if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
+        {
+            $ArrDomains = (Get-ADForest -Identity $ForestName).Domains
+
+            if ($ArrDomains.Count -gt 1)
+            {
+                $class.GetDomains($ArrDomains)
+            }
+
+            if ($ArrDomains.Count -eq 1)
+            {
+                $class.GetDomains($ArrDomains)
+            }
+
+            if ($ArrDomains.Count -eq 0)
+            {
+                Write-Output 'Domains in your Domain'
+            }
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
+        {
+            if ($PSBoundParameters.ContainsKey('Credential'))
+            {
+                $ArrDomains = (Get-ADForest -Server $ServerName -Identity $ForestName -Credential $Credential).Domains
+
+                if ($ArrDomains.Count -gt 1)
+                {
+                    $class.GetDomains($ArrDomains)
+                }
+
+                if ($ArrDomains.Count -eq 1)
+                {
+                    $class.GetDomains($ArrDomains)
+                }
+
+                if ($ArrCrossForestReferences.Count -eq 0)
+                {
+                    Write-Output 'Domains in your Domain.'
+                }
+            }
+            else
+            {
+                $ArrDomains = (Get-ADForest -Server $ServerName -Identity $ForestName).Domains
+
+                if ($ArrDomains.Count -gt 1)
+                {
+                    $class.GetDomains($ArrDomains)
+                }
+
+                if ($ArrDomains.Count -eq 1)
+                {
+                    $class.GetDomains($ArrDomains)
+                }
+
+                if ($ArrDomains.Count -eq 0)
+                {
+                    Write-Output 'No Trusts in your Domain.'
+                }
+            }
+        }
     }
 }
 
