@@ -1,7 +1,7 @@
 ---
 external help file: ActiveDirectoryInventory-help.xml
 Module Name: ActiveDirectoryInventory
-online version:
+online version: 
 schema: 2.0.0
 ---
 
@@ -12,16 +12,17 @@ Get Information about your Active Directory Forest
 
 ## SYNTAX
 
-### AdditionalParameters
+### DefaultParameters (Default)
 ```
-Get-ADIForest -ServerName <String> [-ForestName <String>] [-Credential <PSCredential>] [-ApplicationPartitions]
- [-DomainNamingMaster] [-CrossForestReferences] [-Domains] [<CommonParameters>]
+Get-ADIForest [-ApplicationPartitions] [-DomainNamingMaster] [-CrossForestReferences] [-Domains] [-ForestMode]
+ [-GlobalCatalogServers] [<CommonParameters>]
 ```
 
-### DefaultParameters
+### AdditionalParameters
 ```
-Get-ADIForest [-ApplicationPartitions] [-DomainNamingMaster] [-CrossForestReferences] [-Domains]
- [<CommonParameters>]
+Get-ADIForest [-ServerName <String>] [-ForestName <String>] [-Credential <PSCredential>]
+ [-ApplicationPartitions] [-DomainNamingMaster] [-CrossForestReferences] [-Domains] [-ForestMode]
+ [-GlobalCatalogServers] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -77,7 +78,7 @@ Switch to display All ApplicationPartitions as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: 
 
 Required: False
 Position: Named
@@ -93,7 +94,7 @@ for accessing the forest.
 ```yaml
 Type: PSCredential
 Parameter Sets: AdditionalParameters
-Aliases:
+Aliases: 
 
 Required: False
 Position: Named
@@ -108,7 +109,7 @@ Switch to display All CrossForestReferences as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: 
 
 Required: False
 Position: Named
@@ -123,7 +124,7 @@ Switch to display All DomainNamingMasters as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: 
 
 Required: False
 Position: Named
@@ -138,7 +139,22 @@ Switch to display All Domains as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: 
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ForestMode
+{{Fill ForestMode Description}}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: 
 
 Required: False
 Position: Named
@@ -153,7 +169,22 @@ The name of the forest you would like to check
 ```yaml
 Type: String
 Parameter Sets: AdditionalParameters
-Aliases:
+Aliases: 
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -GlobalCatalogServers
+{{Fill GlobalCatalogServers Description}}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: 
 
 Required: False
 Position: Named
@@ -168,9 +199,9 @@ One of the Active Directory Domain Controllers in the forest.
 ```yaml
 Type: String
 Parameter Sets: AdditionalParameters
-Aliases:
+Aliases: 
 
-Required: True
+Required: False
 Position: Named
 Default value: None
 Accept pipeline input: False

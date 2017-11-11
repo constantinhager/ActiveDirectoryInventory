@@ -2,9 +2,36 @@
 # Prefix = ADI
 
 #region Class
+class Overview
+{
+    # Overview Properties
+    [string]$DomainName
+    [System.Collections.ArrayList]$Domains
+    [System.Collections.ArrayList]$GlobalCatalogs
+
+    Overview()
+    {
+        $this.DomainName = [String]::Empty
+        $this.Domains = New-Object -TypeName System.Collections.ArrayList
+        $this.GlobalCatalogs = New-Object -TypeName System.Collections.ArrayList
+    }
+}
+
 class ActiveDirectoryInventoryClass
 {
+    # Count Variable
     [int]$ID
+
+    # Global Catalog Properties
+    [string]$GlobalCatalogServerSiteName
+    [bool]$IsGlobalCatalogReachable
+
+    ActiveDirectoryInventoryClass()
+    {
+        $this.ID = 0
+        $this.GlobalCatalogServerSiteName = [String]::Empty
+        $this.IsGlobalCatalogReachable = $false
+    }
 
     [System.Collections.ArrayList] GetApplicationPartitions([System.Collections.ArrayList]$ArrayList)
     {
@@ -46,7 +73,7 @@ class ActiveDirectoryInventoryClass
 
     [System.Collections.ArrayList] GetDomainNamingMaster([System.String]$SingleDomainNamingMaster)
     {
-        $ArrDomainNamingMasters = New-Object -TypeName System.Collections.ArrayList
+        $DomainNaimingMaster = New-Object -TypeName System.Collections.ArrayList
         $this.ID = 1
 
         $row = [PSCustomObject]@{
@@ -54,8 +81,8 @@ class ActiveDirectoryInventoryClass
             DomainNamingMaster = $SingleDomainNamingMaster
         }
 
-        $null = $ArrDomainNamingMasters.Add($row)
-        return $ArrDomainNamingMasters
+        $null = $DomainNaimingMaster.Add($row)
+        return $DomainNaimingMaster
     }
 
     [System.Collections.ArrayList] GetCrossForestReferences([System.Collections.ArrayList]$CrossForestReferences)
@@ -87,8 +114,8 @@ class ActiveDirectoryInventoryClass
             CrossForestReference = $CrossForestReference
         }
 
-        $null = $CrossForestReference.Add($row)
-        return $CrossForestReference
+        $null = $ArrCrossForestReference.Add($row)
+        return $ArrCrossForestReference
     }
 
     [System.Collections.ArrayList] GetDomains([System.Collections.ArrayList]$Domains)
@@ -122,6 +149,123 @@ class ActiveDirectoryInventoryClass
 
         $null = $ArrDomains.Add($row)
         return $ArrDomains
+    }
+
+    [System.Collections.ArrayList] GetForestMode([System.String]$ForestMode)
+    {
+        $ArrForestMode = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        $row = [PSCustomObject]@{
+            ID         = $this.ID
+            ForestMode = $ForestMode
+        }
+
+        $null = $ArrForestMode.Add($row)
+        return $ArrForestMode
+    }
+
+    [System.Collections.ArrayList] GetGlobalCatalogServers([System.Collections.ArrayList]$GlobalCatalogServers)
+    {
+        $ArrGlobalCatalogServers = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        foreach ($Item in $GlobalCatalogServers)
+        {
+            if ($item -is [System.DirectoryServices.ActiveDirectory.GlobalCatalog])
+            {
+                if (Test-Connection -ComputerName $Item.Name -Count 1 -Quiet)
+                {
+                    $this.IsGlobalCatalogReachable = $true
+                    $this.GlobalCatalogServerSiteName = (Get-ADDomainController -Identity $Item.Name).Site
+                }
+                else
+                {
+                    $this.IsGlobalCatalogReachable = $false
+                    $this.GlobalCatalogServerSiteName = ''
+                }
+            }
+            else
+            {
+                if (Test-Connection -ComputerName $Item -Count 1 -Quiet)
+                {
+                    $this.IsGlobalCatalogReachable = $true
+                    $this.GlobalCatalogServerSiteName = (Get-ADDomainController -Identity $Item).Site
+                }
+                else
+                {
+                    $this.IsGlobalCatalogReachable = $false
+                    $this.GlobalCatalogServerSiteName = ''
+                }
+            }
+
+
+
+            $row = [PSCustomObject]@{
+                ID                  = $this.ID
+                GlobalCatalogServer = $Item
+                IsReachable         = $this.IsGlobalCatalogReachable
+                SiteName            = $this.GlobalCatalogServerSiteName
+            }
+
+            $null = $ArrGlobalCatalogServers.Add($row)
+            $this.ID++
+        }
+
+        return $ArrGlobalCatalogServers
+    }
+
+    [System.Collections.ArrayList] GetGlobalCatalogServers([System.String]$GloblalCatalogServers)
+    {
+        $ArrGlobalCatalogServers = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        if (Test-Connection -ComputerName $GloblalCatalogServers -Count 1 -Quiet)
+        {
+            $this.IsGlobalCatalogReachable = $true
+            $this.GlobalCatalogServerSiteName = (Get-ADDomainController -Identity $GloblalCatalogServers).Site
+        }
+        else
+        {
+            $this.IsGlobalCatalogReachable = $false
+            $this.GlobalCatalogServerSiteName = ''
+        }
+
+        $row = [PSCustomObject]@{
+            ID                  = $this.ID
+            GlobalCatalogServer = $GloblalCatalogServers
+            IsReachable         = $this.IsGlobalCatalogReachable
+            SiteName            = $this.GlobalCatalogServerSiteName
+        }
+
+        $null = $ArrGlobalCatalogServers.Add($row)
+        return $ArrGlobalCatalogServers
+    }
+
+    [Overview]ReturnOverview()
+    {
+        $ForestNetObject = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
+
+        # returnObject
+        #Name                  :
+        #Sites                 :
+        #Domains               :
+        #GlobalCatalogs        :
+        #ApplicationPartitions :
+        #ForestModeLevel       :
+        #ForestMode            :
+        #RootDomain            :
+        #Schema                :
+        #SchemaRoleOwner       :
+        #NamingRoleOwner       :
+
+        $overviewclass = New-Object -TypeName Overview
+
+        $overviewclass.DomainName = $ForestNetObject.Name
+        $overviewclass.Domains = $this.GetDomains($ForestNetObject.Domains)
+        $overviewclass.GlobalCatalogs = $this.GetGlobalCatalogServers($ForestNetObject.GlobalCatalogs)
+
+        return $overviewclass
     }
 }
 #endregion
@@ -286,11 +430,11 @@ function Install-ADIActiveDirectoryPowerShellModule
 }
 function Get-ADIForest
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'DefaultParameters')]
     param
     (
-        [Parameter(Mandatory = $true, ParameterSetName = 'AdditionalParameters')]
-        [string]$ServerName,
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [string]$ServerName = (Get-ADForest).DomainNamingMaster,
 
         [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
         [string]$ForestName = (Get-ADForest).Name,
@@ -312,7 +456,15 @@ function Get-ADIForest
 
         [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
         [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
-        [switch]$Domains
+        [switch]$Domains,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
+        [switch]$ForestMode,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
+        [switch]$GlobalCatalogServers
     )
 
     if (-not(Get-ChildItem -Path Function:\Test-ADIActiveDirectoryModule -ErrorAction SilentlyContinue))
@@ -501,7 +653,7 @@ function Get-ADIForest
 
             if ($ArrDomains.Count -eq 0)
             {
-                Write-Output 'Domains in your Domain'
+                Write-Output 'No Domains in your Domain'
             }
         }
 
@@ -523,7 +675,7 @@ function Get-ADIForest
 
                 if ($ArrCrossForestReferences.Count -eq 0)
                 {
-                    Write-Output 'Domains in your Domain.'
+                    Write-Output 'No Domains in your Domain.'
                 }
             }
             else
@@ -542,10 +694,134 @@ function Get-ADIForest
 
                 if ($ArrDomains.Count -eq 0)
                 {
+                    Write-Output 'No Domains in your Domain.'
+                }
+            }
+        }
+    }
+
+    if ($PSBoundParameters.ContainsKey('ForestMode'))
+    {
+        if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
+        {
+            $DomainForestMode = (Get-ADForest -Identity $ForestName).ForestMode.ToString()
+
+            if (-not([String]::IsNullOrEmpty($DomainForestMode)))
+            {
+                $class.GetForestMode($DomainForestMode)
+            }
+
+            if ([String]::IsNullOrEmpty($DomainForestMode))
+            {
+                Write-Output 'No Forestmode in your Domain.'
+            }
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
+        {
+            if ($PSBoundParameters.ContainsKey('Credential'))
+            {
+                $DomainForestMode = (Get-ADForest -Server $ServerName -Identity $ForestName -Credential $Credential).ForestMode.ToString()
+
+                if (-not([String]::IsNullOrEmpty($DomainForestMode)))
+                {
+                    $class.GetForestMode($DomainForestMode)
+                }
+
+                if ([String]::IsNullOrEmpty($DomainForestMode))
+                {
+                    Write-Output 'No Forestmode in your Domain.'
+                }
+            }
+            else
+            {
+                $DomainForestMode = (Get-ADForest -Server $ServerName -Identity $ForestName).ForestMode.ToString()
+
+                if (-not([String]::IsNullOrEmpty($DomainForestMode)))
+                {
+                    $class.GetForestMode($DomainForestMode)
+                }
+
+                if ([String]::IsNullOrEmpty($DomainForestMode))
+                {
+                    Write-Output 'No Forestmode in your Domain.'
+                }
+            }
+        }
+    }
+
+    if ($PSBoundParameters.ContainsKey('GlobalCatalogServers'))
+    {
+        $ArrGlobalCatalogServers = New-Object -TypeName System.Collections.ArrayList
+        if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
+        {
+            $ArrGlobalCatalogServers = (Get-ADForest -Identity $ForestName).GlobalCatalogs
+
+            if ($ArrGlobalCatalogServers.Count -gt 1)
+            {
+                $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+            }
+
+            if ($ArrGlobalCatalogServers.Count -eq 1)
+            {
+                $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+            }
+
+            if ($ArrGlobalCatalogServers.Count -eq 0)
+            {
+                Write-Output 'No Trusts in your Domain.'
+            }
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
+        {
+            if ($PSBoundParameters.ContainsKey('Credential'))
+            {
+                $ArrGlobalCatalogServers = (Get-ADForest -Server $ServerName -Identity $ForestName -Credential $Credential).GlobalCatalogs
+
+                if ($ArrGlobalCatalogServers.Count -gt 1)
+                {
+                    $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                }
+
+                if ($ArrGlobalCatalogServers.Count -eq 1)
+                {
+                    $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                }
+
+                if ($ArrGlobalCatalogServers.Count -eq 0)
+                {
+                    Write-Output 'No Trusts in your Domain.'
+                }
+            }
+            else
+            {
+                $ArrGlobalCatalogServers = (Get-ADForest -Server $ServerName -Identity $ForestName).GlobalCatalogs
+
+                if ($ArrGlobalCatalogServers.Count -gt 1)
+                {
+                    $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                }
+
+                if ($ArrGlobalCatalogServers.Count -eq 1)
+                {
+                    $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                }
+
+                if ($ArrGlobalCatalogServers.Count -eq 0)
+                {
                     Write-Output 'No Trusts in your Domain.'
                 }
             }
         }
+    }
+
+    if ($PSBoundParameters.Count -eq 0)
+    {
+        $class.ReturnOverview()
+        #Write-Warning -Message 'No Parameters from my CmdLet specified. Return Results from Get-ADForest.'
+
+        #Get-ADForest
     }
 }
 
