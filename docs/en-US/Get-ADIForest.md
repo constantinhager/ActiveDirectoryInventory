@@ -1,7 +1,7 @@
 ---
 external help file: ActiveDirectoryInventory-help.xml
 Module Name: ActiveDirectoryInventory
-online version: 
+online version:
 schema: 2.0.0
 ---
 
@@ -32,6 +32,10 @@ You can return the following as objects:
 - All CrossForestReferences
 - All DomainNamingMasters
 - All Domains
+- The Forest Mode
+- All Global Catalog Servers
+    - SiteName of Global Catalog Servers
+    - Is the Global Catalog Server reachable?
 
 ## EXAMPLES
 
@@ -78,7 +82,7 @@ Switch to display All ApplicationPartitions as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -94,7 +98,7 @@ for accessing the forest.
 ```yaml
 Type: PSCredential
 Parameter Sets: AdditionalParameters
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -109,7 +113,7 @@ Switch to display All CrossForestReferences as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -124,7 +128,7 @@ Switch to display All DomainNamingMasters as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -139,7 +143,7 @@ Switch to display All Domains as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -149,12 +153,12 @@ Accept wildcard characters: False
 ```
 
 ### -ForestMode
-{{Fill ForestMode Description}}
+Switch to display the Forest Mode
 
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -169,7 +173,7 @@ The name of the forest you would like to check
 ```yaml
 Type: String
 Parameter Sets: AdditionalParameters
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -179,12 +183,14 @@ Accept wildcard characters: False
 ```
 
 ### -GlobalCatalogServers
-{{Fill GlobalCatalogServers Description}}
+Switch to display all Global Catalog Servers as an Object.
+Additionally you get the Site where the Global Catalog Server is in
+and if he is reachable or not.
 
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -199,7 +205,7 @@ One of the Active Directory Domain Controllers in the forest.
 ```yaml
 Type: String
 Parameter Sets: AdditionalParameters
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
