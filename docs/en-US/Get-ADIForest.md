@@ -1,7 +1,7 @@
 ---
 external help file: ActiveDirectoryInventory-help.xml
 Module Name: ActiveDirectoryInventory
-online version:
+online version: 
 schema: 2.0.0
 ---
 
@@ -82,7 +82,7 @@ Switch to display All ApplicationPartitions as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: 
 
 Required: False
 Position: Named
@@ -98,7 +98,7 @@ for accessing the forest.
 ```yaml
 Type: PSCredential
 Parameter Sets: AdditionalParameters
-Aliases:
+Aliases: 
 
 Required: False
 Position: Named
@@ -113,7 +113,7 @@ Switch to display All CrossForestReferences as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: 
 
 Required: False
 Position: Named
@@ -128,7 +128,7 @@ Switch to display All DomainNamingMasters as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: 
 
 Required: False
 Position: Named
@@ -143,7 +143,7 @@ Switch to display All Domains as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: 
 
 Required: False
 Position: Named
@@ -158,7 +158,7 @@ Switch to display the Forest Mode
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: 
 
 Required: False
 Position: Named
@@ -173,7 +173,7 @@ The name of the forest you would like to check
 ```yaml
 Type: String
 Parameter Sets: AdditionalParameters
-Aliases:
+Aliases: 
 
 Required: False
 Position: Named
@@ -190,7 +190,7 @@ and if he is reachable or not.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: 
 
 Required: False
 Position: Named
@@ -205,7 +205,7 @@ One of the Active Directory Domain Controllers in the forest.
 ```yaml
 Type: String
 Parameter Sets: AdditionalParameters
-Aliases:
+Aliases: 
 
 Required: False
 Position: Named
