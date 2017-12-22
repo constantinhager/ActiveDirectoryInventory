@@ -15,14 +15,16 @@ Get Information about your Active Directory Forest
 ### DefaultParameters (Default)
 ```
 Get-ADIForest [-ApplicationPartitions] [-DomainNamingMaster] [-CrossForestReferences] [-Domains] [-ForestMode]
- [-GlobalCatalogServers] [<CommonParameters>]
+ [-GlobalCatalogServers] [-ForestName] [-PartitionsContainer] [-RootDomain] [-SchemaMaster] [-Sites]
+ [-SPNSuffixes] [-UPNSuffixes] [<CommonParameters>]
 ```
 
 ### AdditionalParameters
 ```
-Get-ADIForest [-ServerName <String>] [-ForestName <String>] [-Credential <PSCredential>]
- [-ApplicationPartitions] [-DomainNamingMaster] [-CrossForestReferences] [-Domains] [-ForestMode]
- [-GlobalCatalogServers] [<CommonParameters>]
+Get-ADIForest [-ServerName <String>] [-Credential <PSCredential>] [-ApplicationPartitions]
+ [-DomainNamingMaster] [-CrossForestReferences] [-Domains] [-ForestMode] [-GlobalCatalogServers] [-ForestName]
+ [-PartitionsContainer] [-RootDomain] [-SchemaMaster] [-Sites] [-SPNSuffixes] [-UPNSuffixes]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -171,8 +173,8 @@ Accept wildcard characters: False
 The name of the forest you would like to check
 
 ```yaml
-Type: String
-Parameter Sets: AdditionalParameters
+Type: SwitchParameter
+Parameter Sets: (All)
 Aliases: 
 
 Required: False
@@ -199,12 +201,102 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -PartitionsContainer
+{{Fill PartitionsContainer Description}}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: 
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -RootDomain
+{{Fill RootDomain Description}}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: 
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -SPNSuffixes
+{{Fill SPNSuffixes Description}}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: 
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -SchemaMaster
+{{Fill SchemaMaster Description}}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: 
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -ServerName
 One of the Active Directory Domain Controllers in the forest.
 
 ```yaml
 Type: String
 Parameter Sets: AdditionalParameters
+Aliases: 
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Sites
+{{Fill Sites Description}}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: 
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -UPNSuffixes
+{{Fill UPNSuffixes Description}}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
 Aliases: 
 
 Required: False

@@ -7,9 +7,6 @@ function Get-ADIForest
         [string]$ServerName = (Get-ADForest).DomainNamingMaster,
 
         [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
-        [string]$ForestName = (Get-ADForest).Name,
-
-        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
         [pscredential]$Credential,
 
         [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
@@ -34,7 +31,35 @@ function Get-ADIForest
 
         [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
         [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
-        [switch]$GlobalCatalogServers
+        [switch]$GlobalCatalogServers,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
+        [switch]$ForestName,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
+        [switch]$PartitionsContainer,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
+        [switch]$RootDomain,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
+        [switch]$SchemaMaster,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
+        [switch]$Sites,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
+        [switch]$SPNSuffixes,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DefaultParameters')]
+        [switch]$UPNSuffixes
     )
 
     if (-not(Get-ChildItem -Path Function:\Test-ADIActiveDirectoryModule -ErrorAction SilentlyContinue))
@@ -48,12 +73,14 @@ function Get-ADIForest
         }
     }
 
+    $NameOfForest = (Get-ADForest).Name
+
     if ($PSBoundParameters.ContainsKey('ApplicationPartitions'))
     {
         $AllApplicationPartitions = New-Object -TypeName System.Collections.ArrayList
         if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
         {
-            $AllApplicationPartitions = (Get-ADForest -Identity $ForestName).ApplicationPartitions
+            $AllApplicationPartitions = (Get-ADForest -Identity $NameOfForest).ApplicationPartitions
             $class.GetApplicationPartitions($AllApplicationPartitions)
         }
 
@@ -61,12 +88,12 @@ function Get-ADIForest
         {
             if ($PSBoundParameters.ContainsKey('Credential'))
             {
-                $AllApplicationPartitions = (Get-ADForest -Server $ServerName -Identity $ForestName -Credential $Credential).ApplicationPartitions
+                $AllApplicationPartitions = (Get-ADForest -Server $ServerName -Identity $NameOfForest -Credential $Credential).ApplicationPartitions
                 $class.GetApplicationPartitions($AllApplicationPartitions)
             }
             else
             {
-                $AllApplicationPartitions = (Get-ADForest -Server $ServerName -Identity $ForestName).ApplicationPartitions
+                $AllApplicationPartitions = (Get-ADForest -Server $ServerName -Identity $NameOfForest).ApplicationPartitions
                 $class.GetApplicationPartitions($AllApplicationPartitions)
             }
         }
@@ -77,7 +104,7 @@ function Get-ADIForest
         $DomainNamingMasters = New-Object -TypeName System.Collections.ArrayList
         if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
         {
-            $DomainNamingMasters = (Get-ADForest -Identity $ForestName).DomainNamingMaster
+            $DomainNamingMasters = (Get-ADForest -Identity $NameOfForest).DomainNamingMaster
 
             if ($DomainNamingMasters.Count -gt 1)
             {
@@ -94,48 +121,6 @@ function Get-ADIForest
                 Write-Output 'No DomainNamingMasters in your Domain.'
             }
         }
-
-        if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
-        {
-            if ($PSBoundParameters.ContainsKey('Credential'))
-            {
-                $DomainNamingMasters = (Get-ADForest -Server $ServerName -Identity $ForestName -Credential $Credential).DomainNamingMaster
-
-                if ($DomainNamingMasters.Count -gt 1)
-                {
-                    $class.GetDomainNamingMaster($DomainNamingMasters)
-                }
-
-                if ($DomainNamingMasters.Count -eq 1)
-                {
-                    $class.GetDomainNamingMaster($DomainNamingMasters)
-                }
-
-                if ($DomainNamingMasters.Count -eq 0)
-                {
-                    Write-Output 'No DomainNamingMasters in your Domain.'
-                }
-            }
-            else
-            {
-                $DomainNamingMasters = (Get-ADForest -Server $ServerName -Identity $ForestName).DomainNamingMaster
-
-                if ($DomainNamingMasters.Count -gt 1)
-                {
-                    $class.GetDomainNamingMaster($DomainNamingMasters)
-                }
-
-                if ($DomainNamingMasters.Count -eq 1)
-                {
-                    $class.GetDomainNamingMaster($DomainNamingMasters)
-                }
-
-                if ($DomainNamingMasters.Count -eq 0)
-                {
-                    Write-Output 'No DomainNamingMasters in your Domain.'
-                }
-            }
-        }
     }
 
     if ($PSBoundParameters.ContainsKey('CrossForestReferences'))
@@ -143,7 +128,7 @@ function Get-ADIForest
         $ArrCrossForestReferences = New-Object -TypeName System.Collections.ArrayList
         if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
         {
-            $ArrCrossForestReferences = (Get-ADForest -Identity $ForestName).CrossForestReferences
+            $ArrCrossForestReferences = (Get-ADForest -Identity $NameOfForest).CrossForestReferences
 
             if ($ArrCrossForestReferences.Count -gt 1)
             {
@@ -165,7 +150,7 @@ function Get-ADIForest
         {
             if ($PSBoundParameters.ContainsKey('Credential'))
             {
-                $ArrCrossForestReferences = (Get-ADForest -Server $ServerName -Identity $ForestName -Credential $Credential).CrossForestReferences
+                $ArrCrossForestReferences = (Get-ADForest -Server $ServerName -Identity $NameOfForest -Credential $Credential).CrossForestReferences
 
                 if ($ArrCrossForestReferences.Count -gt 1)
                 {
@@ -184,7 +169,7 @@ function Get-ADIForest
             }
             else
             {
-                $ArrCrossForestReferences = (Get-ADForest -Server $ServerName -Identity $ForestName).CrossForestReferences
+                $ArrCrossForestReferences = (Get-ADForest -Server $ServerName -Identity $NameOfForest).CrossForestReferences
 
                 if ($ArrCrossForestReferences.Count -gt 1)
                 {
@@ -209,7 +194,7 @@ function Get-ADIForest
         $ArrDomains = New-Object -TypeName System.Collections.ArrayList
         if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
         {
-            $ArrDomains = (Get-ADForest -Identity $ForestName).Domains
+            $ArrDomains = (Get-ADForest -Identity $NameOfForest).Domains
 
             if ($ArrDomains.Count -gt 1)
             {
@@ -231,7 +216,7 @@ function Get-ADIForest
         {
             if ($PSBoundParameters.ContainsKey('Credential'))
             {
-                $ArrDomains = (Get-ADForest -Server $ServerName -Identity $ForestName -Credential $Credential).Domains
+                $ArrDomains = (Get-ADForest -Server $ServerName -Identity $NameOfForest -Credential $Credential).Domains
 
                 if ($ArrDomains.Count -gt 1)
                 {
@@ -243,14 +228,14 @@ function Get-ADIForest
                     $class.GetDomains($ArrDomains)
                 }
 
-                if ($ArrCrossForestReferences.Count -eq 0)
+                if ($ArrDomains.Count -eq 0)
                 {
                     Write-Output 'No Domains in your Domain.'
                 }
             }
             else
             {
-                $ArrDomains = (Get-ADForest -Server $ServerName -Identity $ForestName).Domains
+                $ArrDomains = (Get-ADForest -Server $ServerName -Identity $NameOfForest).Domains
 
                 if ($ArrDomains.Count -gt 1)
                 {
@@ -274,11 +259,11 @@ function Get-ADIForest
     {
         if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
         {
-            $DomainForestMode = (Get-ADForest -Identity $ForestName).ForestMode.ToString()
+            $DomainForestMode = (Get-ADForest -Identity $NameOfForest).ForestMode.ToString()
 
             if (-not([String]::IsNullOrEmpty($DomainForestMode)))
             {
-                $class.GetForestMode($DomainForestMode)
+                $DomainForestMode
             }
 
             if ([String]::IsNullOrEmpty($DomainForestMode))
@@ -291,11 +276,11 @@ function Get-ADIForest
         {
             if ($PSBoundParameters.ContainsKey('Credential'))
             {
-                $DomainForestMode = (Get-ADForest -Server $ServerName -Identity $ForestName -Credential $Credential).ForestMode.ToString()
+                $DomainForestMode = (Get-ADForest -Server $ServerName -Identity $NameOfForest -Credential $Credential).ForestMode.ToString()
 
                 if (-not([String]::IsNullOrEmpty($DomainForestMode)))
                 {
-                    $class.GetForestMode($DomainForestMode)
+                    $DomainForestMode
                 }
 
                 if ([String]::IsNullOrEmpty($DomainForestMode))
@@ -305,11 +290,11 @@ function Get-ADIForest
             }
             else
             {
-                $DomainForestMode = (Get-ADForest -Server $ServerName -Identity $ForestName).ForestMode.ToString()
+                $DomainForestMode = (Get-ADForest -Server $ServerName -Identity $NameOfForest).ForestMode.ToString()
 
                 if (-not([String]::IsNullOrEmpty($DomainForestMode)))
                 {
-                    $class.GetForestMode($DomainForestMode)
+                    $DomainForestMode
                 }
 
                 if ([String]::IsNullOrEmpty($DomainForestMode))
@@ -325,7 +310,7 @@ function Get-ADIForest
         $ArrGlobalCatalogServers = New-Object -TypeName System.Collections.ArrayList
         if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
         {
-            $ArrGlobalCatalogServers = (Get-ADForest -Identity $ForestName).GlobalCatalogs
+            $ArrGlobalCatalogServers = (Get-ADForest -Identity $NameOfForest).GlobalCatalogs
 
             if ($ArrGlobalCatalogServers.Count -gt 1)
             {
@@ -342,55 +327,271 @@ function Get-ADIForest
                 Write-Output 'No Trusts in your Domain.'
             }
         }
+    }
+
+    if ($PSBoundParameters.ContainsKey('ForestName'))
+    {
+        (Get-ADForest).Name
+    }
+
+    if ($PSBoundParameters.ContainsKey('PartitionsContainer'))
+    {
+        (Get-ADForest).PartitionsContainer
+    }
+
+    if ($PSBoundParameters.ContainsKey('RootDomain'))
+    {
+        (Get-ADForest).RootDomain
+    }
+
+    if ($PSBoundParameters.ContainsKey('SchemaMaster'))
+    {
+        (Get-ADForest).SchemaMaster
+    }
+
+    if ($PSBoundParameters.ContainsKey('Sites'))
+    {
+        $ArrSites = New-Object -TypeName System.Collections.ArrayList
+        if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
+        {
+            $ArrSites = (Get-ADForest -Identity $NameOfForest).Sites
+
+            if ($ArrSites.Count -gt 1)
+            {
+                $class.GetSites($ArrSites)
+            }
+
+            if ($ArrSites.Count -eq 1)
+            {
+                $class.GetSites($ArrSites)
+            }
+
+            if ($ArrSites.Count -eq 0)
+            {
+                Write-Output 'No Domains in your Domain'
+            }
+        }
 
         if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
         {
             if ($PSBoundParameters.ContainsKey('Credential'))
             {
-                $ArrGlobalCatalogServers = (Get-ADForest -Server $ServerName -Identity $ForestName -Credential $Credential).GlobalCatalogs
+                $ArrSites = (Get-ADForest -Server $ServerName -Identity $NameOfForest -Credential $Credential).Sites
 
-                if ($ArrGlobalCatalogServers.Count -gt 1)
+                if ($ArrSites.Count -gt 1)
                 {
-                    $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                    $class.GetSites($ArrSites)
                 }
 
-                if ($ArrGlobalCatalogServers.Count -eq 1)
+                if ($ArrSites.Count -eq 1)
                 {
-                    $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                    $class.GetSites($ArrSites)
                 }
 
-                if ($ArrGlobalCatalogServers.Count -eq 0)
+                if ($ArrSites.Count -eq 0)
                 {
-                    Write-Output 'No Trusts in your Domain.'
+                    Write-Output 'No Sites in your Domain.'
                 }
             }
             else
             {
-                $ArrGlobalCatalogServers = (Get-ADForest -Server $ServerName -Identity $ForestName).GlobalCatalogs
+                $ArrSites = (Get-ADForest -Server $ServerName -Identity $NameOfForest).Domains
 
-                if ($ArrGlobalCatalogServers.Count -gt 1)
+                if ($ArrSites.Count -gt 1)
                 {
-                    $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                    $class.GetSites($ArrSites)
                 }
 
-                if ($ArrGlobalCatalogServers.Count -eq 1)
+                if ($ArrSites.Count -eq 1)
                 {
-                    $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                    $class.GetSites($ArrSites)
                 }
 
-                if ($ArrGlobalCatalogServers.Count -eq 0)
+                if ($ArrSites.Count -eq 0)
                 {
-                    Write-Output 'No Trusts in your Domain.'
+                    Write-Output 'No Sites in your Domain.'
                 }
+            }
+        }
+    }
+
+    if ($PSBoundParameters.ContainsKey('SPNSuffixes'))
+    {
+        $ArrSPN = New-Object -TypeName System.Collections.ArrayList
+        if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
+        {
+            $ArrSPN = (Get-ADForest -Identity $NameOfForest).SPNSuffixes
+
+            if ($ArrSPN.Count -gt 1)
+            {
+                $class.GetSPNSuffixes($ArrSPN)
+            }
+
+            if ($ArrSPN.Count -eq 1)
+            {
+                $class.GetSPNSuffixes($ArrSPN)
+            }
+
+            if ($ArrSPN.Count -eq 0)
+            {
+                Write-Output 'No Domains in your Domain'
+            }
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
+        {
+            if ($PSBoundParameters.ContainsKey('Credential'))
+            {
+                $ArrSPN = (Get-ADForest -Server $ServerName -Identity $NameOfForest -Credential $Credential).SPNSuffixes
+
+                if ($ArrSPN.Count -gt 1)
+                {
+                    $class.GetSPNSuffixes($ArrSPN)
+                }
+
+                if ($ArrSPN.Count -eq 1)
+                {
+                    $class.GetSPNSuffixes($ArrSPN)
+                }
+
+                if ($ArrSPN.Count -eq 0)
+                {
+                    Write-Output 'No Sites in your Domain.'
+                }
+            }
+            else
+            {
+                $ArrSPN = (Get-ADForest -Server $ServerName -Identity $NameOfForest).SPNSuffixes
+
+                if ($ArrSPN.Count -gt 1)
+                {
+                    $class.GetSPNSuffixes($ArrSPN)
+                }
+
+                if ($ArrSPN.Count -eq 1)
+                {
+                    $class.GetSPNSuffixes($ArrSPN)
+                }
+
+                if ($ArrSPN.Count -eq 0)
+                {
+                    Write-Output 'No Sites in your Domain.'
+                }
+            }
+        }
+    }
+
+    if ($PSBoundParameters.ContainsKey('UPNSuffixes'))
+    {
+        $ArrUPN = New-Object -TypeName System.Collections.ArrayList
+        if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
+        {
+            $ArrUPN = (Get-ADForest -Identity $NameOfForest).UPNSuffixes
+
+            if ($ArrUPN.Count -gt 1)
+            {
+                $class.GetUPNSuffixes($ArrUPN)
+            }
+
+            if ($ArrUPN.Count -eq 1)
+            {
+                $class.GetUPNSuffixes($ArrUPN)
+            }
+
+            if ($ArrUPN.Count -eq 0)
+            {
+                Write-Output 'No Domains in your Domain'
+            }
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
+        {
+            if ($PSBoundParameters.ContainsKey('Credential'))
+            {
+                $ArrUPN = (Get-ADForest -Server $ServerName -Identity $NameOfForest -Credential $Credential).UPNNSuffixes
+
+                if ($ArrUPN.Count -gt 1)
+                {
+                    $class.GetUPNSuffixes($ArrUPN)
+                }
+
+                if ($ArrUPN.Count -eq 1)
+                {
+                    $class.GetUPNSuffixes($ArrUPN)
+                }
+
+                if ($ArrUPN.Count -eq 0)
+                {
+                    Write-Output 'No Sites in your Domain.'
+                }
+            }
+            else
+            {
+                $ArrUPN = (Get-ADForest -Server $ServerName -Identity $NameOfForest).SPNSuffixes
+
+                if ($ArrUPN.Count -gt 1)
+                {
+                    $class.GetUPNSuffixes($ArrUPN)
+                }
+
+                if ($ArrUPN.Count -eq 1)
+                {
+                    $class.GetUPNSuffixes($ArrUPN)
+                }
+
+                if ($ArrUPN.Count -eq 0)
+                {
+                    Write-Output 'No Sites in your Domain.'
+                }
+            }
+        }
+    }
+
+    if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
+    {
+        if ($PSBoundParameters.ContainsKey('Credential'))
+        {
+            $ArrGlobalCatalogServers = (Get-ADForest -Server $ServerName -Identity $NameOfForest -Credential $Credential).GlobalCatalogs
+
+            if ($ArrGlobalCatalogServers.Count -gt 1)
+            {
+                $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+            }
+
+            if ($ArrGlobalCatalogServers.Count -eq 1)
+            {
+                $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+            }
+
+            if ($ArrGlobalCatalogServers.Count -eq 0)
+            {
+                Write-Output 'No Trusts in your Domain.'
+            }
+        }
+        else
+        {
+            $ArrGlobalCatalogServers = (Get-ADForest -Server $ServerName -Identity $NameOfForest).GlobalCatalogs
+
+            if ($ArrGlobalCatalogServers.Count -gt 1)
+            {
+                $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+            }
+
+            if ($ArrGlobalCatalogServers.Count -eq 1)
+            {
+                $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+            }
+
+            if ($ArrGlobalCatalogServers.Count -eq 0)
+            {
+                Write-Output 'No Trusts in your Domain.'
             }
         }
     }
 
     if ($PSBoundParameters.Count -eq 0)
     {
+        Write-Warning -Message 'No Parameters from my CmdLet specified. Return Results from my internal Class.'
         $class.ReturnOverview()
-        #Write-Warning -Message 'No Parameters from my CmdLet specified. Return Results from Get-ADForest.'
-
-        #Get-ADForest
     }
 }

@@ -4,12 +4,105 @@ class Overview
     [string]$DomainName
     [System.Collections.ArrayList]$Domains
     [System.Collections.ArrayList]$GlobalCatalogs
+    [System.Collections.ArrayList]$ApplicationPartitions
+    [System.Collections.ArrayList]$DomainNamingMaster
+    [System.Collections.ArrayList]$CrossForestReference
+    [System.Collections.ArrayList]$Sites
+    [System.Collections.ArrayList]$SPNSuffixes
+    [System.Collections.ArrayList]$UPNSuffixes
+    [System.String]$ForestMode
+    [string]$ForestName
+    [string]$PartitionsContainer
+    [string]$RootDomain
+    [string]$SchemaMaster
 
     Overview()
     {
         $this.DomainName = [String]::Empty
         $this.Domains = New-Object -TypeName System.Collections.ArrayList
         $this.GlobalCatalogs = New-Object -TypeName System.Collections.ArrayList
+        $this.ApplicationPartitions = New-Object -TypeName System.Collections.ArrayList
+        $this.DomainNamingMaster = New-Object -TypeName System.Collections.ArrayList
+        $this.CrossForestReference = New-Object -TypeName System.Collections.ArrayList
+        $this.Sites = New-Object -TypeName System.Collections.ArrayList
+        $this.UPNSuffixes = New-Object -TypeName System.Collections.ArrayList
+        $this.SPNSuffixes = New-Object -TypeName System.Collections.ArrayList
+        $this.ForestMode = [String]::Empty
+        $this.ForestName = [String]::Empty
+        $this.PartitionsContainer = [String]::Empty
+        $this.RootDomain = [String]::Empty
+        $this.SchemaMaster = [String]::Empty
+    }
+
+    [System.String] GetPartitionsContainer()
+    {
+        $RootDSE = New-Object -TypeName System.DirectoryServices.DirectoryEntry -ArgumentList "LDAP://RootDSE"
+        $ConfigContainerArgument = ('LDAP://{0}' -f $RootDSE.Properties['configurationNamingContext'].Value)
+        $ConfigContainer = New-Object -TypeName System.DirectoryServices.DirectoryEntry -ArgumentList $ConfigContainerArgument
+
+        $ConfigSearcher = New-Object -TypeName System.DirectoryServices.DirectorySearcher -ArgumentList $ConfigContainer
+        $ConfigSearcher.Filter = "(&(objectClass=crossRefContainer))"
+        $ConfigSearcher.PropertiesToLoad.Add("distinguishedName")
+        $ConfigSearcher.SearchScope = [System.DirectoryServices.SearchScope]::OneLevel
+
+        [System.DirectoryServices.SearchResult]$SearchResult = $ConfigSearcher.FindOne()
+
+        return $SearchResult.Properties["distinguishedName"][0].ToString()
+    }
+
+    [System.Collections.ArrayList] GetUPNSuffixes()
+    {
+        $UPNArray = New-Object -TypeName System.Collections.ArrayList
+        $ID = 1
+
+        $UPNDN = ('LDAP://{0}' -f $this.GetPartitionsContainer())
+
+        $ADSIObject = [adsi]$UPNDN
+        $UPNSuffixList = $ADSIObject | Select-Object -ExpandProperty upnsuffixes
+
+        if ($UPNSuffixList -eq $null)
+        {
+            Write-Output -InputObject 'No UPN Suffixes are there'
+            break
+        }
+
+        foreach ($UPNSuffix in $UPNSuffixList)
+        {
+            $row = [PSCustomObject]@{
+                ID        = $ID
+                UPNSuffix = $UPNSuffix
+            }
+            $UPNArray.Add($row)
+            $ID++
+        }
+
+        return $UPNArray
+    }
+
+    [System.Collections.ArrayList] GetSPNSuffixes()
+    {
+        $SPNArr = New-Object -TypeName System.Collections.ArrayList
+        $ID = 1
+
+        $SPNSuffixList = (Get-ADForest).SPNSuffixes
+
+        if ($SPNSuffixList -eq $null)
+        {
+            Write-Output -InputObject 'No SPN Suffixes'
+            break
+        }
+
+        foreach ($SPNSuffix in $SPNSuffixList)
+        {
+            $row = [PSCustomObject]@{
+                ID        = $ID
+                SPNSuffix = $SPNSuffix
+            }
+            $SPNArr.Add($row)
+            $ID++
+        }
+
+        return $SPNArr
     }
 }
 
@@ -29,7 +122,7 @@ class ActiveDirectoryInventoryClass
         $this.IsGlobalCatalogReachable = $false
     }
 
-    [bool]TestADIActiveDirectoryModule()
+    [bool] TestADIActiveDirectoryModule()
     {
         if ([String]::IsNullOrEmpty(((Get-Module -ListAvailable).Where{$_.Name -eq 'ActiveDirectory'}).Name))
         {
@@ -159,18 +252,103 @@ class ActiveDirectoryInventoryClass
         return $ArrDomains
     }
 
-    [System.Collections.ArrayList] GetForestMode([System.String]$ForestMode)
+    [System.Collections.ArrayList] GetSites([System.Collections.ArrayList]$Sites)
     {
-        $ArrForestMode = New-Object -TypeName System.Collections.ArrayList
+        $ArrSites = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        foreach ($Item in $Sites)
+        {
+            $row = [PSCustomObject]@{
+                ID   = $this.ID
+                Site = $Item
+            }
+
+            $null = $ArrSites.Add($row)
+            $this.ID++
+        }
+
+        return $ArrSites
+    }
+
+    [System.Collections.ArrayList] GetSites([System.String]$Site)
+    {
+        $ArrSites = New-Object -TypeName System.Collections.ArrayList
         $this.ID = 1
 
         $row = [PSCustomObject]@{
-            ID         = $this.ID
-            ForestMode = $ForestMode
+            ID   = $this.ID
+            Site = $Site
         }
 
-        $null = $ArrForestMode.Add($row)
-        return $ArrForestMode
+        $null = $ArrSites.Add($row)
+        return $ArrSites
+    }
+
+    [System.Collections.ArrayList] GetSPNSuffixes([System.Collections.ArrayList]$SPNSuffixes)
+    {
+        $ArrSPN = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        foreach ($Item in $SPNSuffixes)
+        {
+            $row = [PSCustomObject]@{
+                ID  = $this.ID
+                SPN = $Item
+            }
+
+            $null = $ArrSPN.Add($row)
+            $this.ID++
+        }
+
+        return $ArrSPN
+    }
+
+    [System.Collections.ArrayList] GetSPNSuffixes([System.String]$SPN)
+    {
+        $ArrSPN = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        $row = [PSCustomObject]@{
+            ID  = $this.ID
+            SPN = $SPN
+        }
+
+        $null = $ArrSPN.Add($row)
+        return $ArrSPN
+    }
+
+    [System.Collections.ArrayList] GetUPNSuffixes([System.Collections.ArrayList]$UPNSuffixes)
+    {
+        $ArrUPN = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        foreach ($Item in $UPNSuffixes)
+        {
+            $row = [PSCustomObject]@{
+                ID  = $this.ID
+                UPN = $Item
+            }
+
+            $null = $ArrUPN.Add($row)
+            $this.ID++
+        }
+
+        return $ArrUPN
+    }
+
+    [System.Collections.ArrayList] GetUPNSuffixes([System.String]$UPN)
+    {
+        $ArrUPN = New-Object -TypeName System.Collections.ArrayList
+        $this.ID = 1
+
+        $row = [PSCustomObject]@{
+            ID  = $this.ID
+            UPN = $UPN
+        }
+
+        $null = $ArrUPN.Add($row)
+        return $ArrUPN
     }
 
     [System.Collections.ArrayList] GetGlobalCatalogServers([System.Collections.ArrayList]$GlobalCatalogServers)
@@ -272,6 +450,17 @@ class ActiveDirectoryInventoryClass
         $overviewclass.DomainName = $ForestNetObject.Name
         $overviewclass.Domains = $this.GetDomains($ForestNetObject.Domains)
         $overviewclass.GlobalCatalogs = $this.GetGlobalCatalogServers($ForestNetObject.GlobalCatalogs)
+        $overviewclass.ApplicationPartitions = $this.GetApplicationPartitions($ForestNetObject.ApplicationPartitions)
+        $overviewclass.DomainNamingMaster = $this.GetDomainNamingMaster($ForestNetObject.NamingRoleOwner)
+        $overviewclass.CrossForestReference = $this.GetCrossForestReferences($ForestNetObject.GetAllTrustRelationships())
+        $overviewclass.ForestMode = $ForestNetObject.ForestMode
+        $overviewclass.ForestName = $ForestNetObject.Name
+        $overviewclass.PartitionsContainer = $overviewclass.GetPartitionsContainer()
+        $overviewclass.RootDomain = $ForestNetObject.RootDomain
+        $overviewclass.SchemaMaster = $ForestNetObject.SchemaRoleOwner
+        $overviewclass.Sites = $this.GetSites($ForestNetObject.Sites)
+        $overviewclass.UPNSuffixes = $overviewclass.GetUPNSuffixes()
+        $overviewclass.SPNSuffixes = $overviewclass.GetSPNSuffixes()
 
         return $overviewclass
     }
