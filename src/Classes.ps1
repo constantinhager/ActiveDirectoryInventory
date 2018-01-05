@@ -104,6 +104,60 @@ class Overview
 
         return $SPNArr
     }
+
+    [Overview]ReturnOverview()
+    {
+        $ForestNetObject = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
+
+        $adi = New-Object -TypeName ActiveDirectoryInventoryClass
+        $overviewclass = New-Object -TypeName Overview
+
+        $overviewclass.DomainName = $ForestNetObject.Name
+        $overviewclass.Domains = $adi.GetDomains($ForestNetObject.Domains)
+        $overviewclass.GlobalCatalogs = $adi.GetGlobalCatalogServers($ForestNetObject.GlobalCatalogs)
+        $overviewclass.ApplicationPartitions = $adi.GetApplicationPartitions($ForestNetObject.ApplicationPartitions)
+        $overviewclass.DomainNamingMaster = $adi.GetDomainNamingMaster($ForestNetObject.NamingRoleOwner)
+        $overviewclass.CrossForestReference = $adi.GetCrossForestReferences($ForestNetObject.GetAllTrustRelationships())
+        $overviewclass.ForestMode = $ForestNetObject.ForestMode
+        $overviewclass.ForestName = $ForestNetObject.Name
+        $overviewclass.PartitionsContainer = $this.GetPartitionsContainer()
+        $overviewclass.RootDomain = $ForestNetObject.RootDomain
+        $overviewclass.SchemaMaster = $ForestNetObject.SchemaRoleOwner
+        $overviewclass.Sites = $adi.GetSites($ForestNetObject.Sites)
+        $overviewclass.UPNSuffixes = $this.GetUPNSuffixes()
+        $overviewclass.SPNSuffixes = $this.GetSPNSuffixes()
+
+        return $overviewclass
+    }
+
+    [Overview]ReturnOverviewWithCredentials([PSCredential]$DomainCredentials)
+    {
+        $username = $DomainCredentials.UserName
+        $password = $DomainCredentials.GetNetworkCredential().Password
+
+        $adi = New-Object -TypeName ActiveDirectoryInventoryClass
+        $overviewclass = New-Object -TypeName Overview
+        $DirectoryContext = New-Object -TypeName System.DirectoryServices.ActiveDirectory.DirectoryContext -ArgumentList Forest, $username, $password
+
+        $ForestNetObject = [System.DirectoryServices.ActiveDirectory.Forest]::GetForest($DirectoryContext)
+
+        $overviewclass.DomainName = $ForestNetObject.Name
+        $overviewclass.Domains = $adi.GetDomains($ForestNetObject.Domains)
+        $overviewclass.GlobalCatalogs = $adi.GetGlobalCatalogServers($ForestNetObject.GlobalCatalogs)
+        $overviewclass.ApplicationPartitions = $adi.GetApplicationPartitions($ForestNetObject.ApplicationPartitions)
+        $overviewclass.DomainNamingMaster = $adi.GetDomainNamingMaster($ForestNetObject.NamingRoleOwner)
+        $overviewclass.CrossForestReference = $adi.GetCrossForestReferences($ForestNetObject.GetAllTrustRelationships())
+        $overviewclass.ForestMode = $ForestNetObject.ForestMode
+        $overviewclass.ForestName = $ForestNetObject.Name
+        $overviewclass.PartitionsContainer = $this.GetPartitionsContainer()
+        $overviewclass.RootDomain = $ForestNetObject.RootDomain
+        $overviewclass.SchemaMaster = $ForestNetObject.SchemaRoleOwner
+        $overviewclass.Sites = $adi.GetSites($ForestNetObject.Sites)
+        $overviewclass.UPNSuffixes = $this.GetUPNSuffixes()
+        $overviewclass.SPNSuffixes = $this.GetSPNSuffixes()
+
+        return $overviewclass
+    }
 }
 
 class ActiveDirectoryInventoryClass
@@ -426,42 +480,5 @@ class ActiveDirectoryInventoryClass
 
         $null = $ArrGlobalCatalogServers.Add($row)
         return $ArrGlobalCatalogServers
-    }
-
-    [Overview]ReturnOverview()
-    {
-        $ForestNetObject = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
-
-        # returnObject
-        #Name                  :
-        #Sites                 :
-        #Domains               :
-        #GlobalCatalogs        :
-        #ApplicationPartitions :
-        #ForestModeLevel       :
-        #ForestMode            :
-        #RootDomain            :
-        #Schema                :
-        #SchemaRoleOwner       :
-        #NamingRoleOwner       :
-
-        $overviewclass = New-Object -TypeName Overview
-
-        $overviewclass.DomainName = $ForestNetObject.Name
-        $overviewclass.Domains = $this.GetDomains($ForestNetObject.Domains)
-        $overviewclass.GlobalCatalogs = $this.GetGlobalCatalogServers($ForestNetObject.GlobalCatalogs)
-        $overviewclass.ApplicationPartitions = $this.GetApplicationPartitions($ForestNetObject.ApplicationPartitions)
-        $overviewclass.DomainNamingMaster = $this.GetDomainNamingMaster($ForestNetObject.NamingRoleOwner)
-        $overviewclass.CrossForestReference = $this.GetCrossForestReferences($ForestNetObject.GetAllTrustRelationships())
-        $overviewclass.ForestMode = $ForestNetObject.ForestMode
-        $overviewclass.ForestName = $ForestNetObject.Name
-        $overviewclass.PartitionsContainer = $overviewclass.GetPartitionsContainer()
-        $overviewclass.RootDomain = $ForestNetObject.RootDomain
-        $overviewclass.SchemaMaster = $ForestNetObject.SchemaRoleOwner
-        $overviewclass.Sites = $this.GetSites($ForestNetObject.Sites)
-        $overviewclass.UPNSuffixes = $overviewclass.GetUPNSuffixes()
-        $overviewclass.SPNSuffixes = $overviewclass.GetSPNSuffixes()
-
-        return $overviewclass
     }
 }

@@ -6,6 +6,7 @@
 
 #Instanciate Class
 $class = New-Object -TypeName ActiveDirectoryInventoryClass
+$overview = New-Object -TypeName Overview
 
 # Dot Source Install-ADIActiveDirectoryPowerShellModule.ps1
 . $PSScriptRoot\Install-ADIActiveDirectoryPowerShellModule.ps1

@@ -1,10 +1,117 @@
 function Get-ADIForest
 {
+    <#
+    .SYNOPSIS
+    Returns the ActiveDirectory Forest Information in form of objects.
+
+    .DESCRIPTION
+    This Functions returns Active Directory forest information as Objects.
+    You can return the following as objects:
+    - All Application Partitions
+    - All CrossForestReferences
+    - All DomainNamingMasters
+    - All Domains
+    - The Forest Mode
+    - All Global Catalog Servers
+        - SiteName of Global Catalog Servers
+        - Is the Global Catalog Server reachable?
+    - The DomainName
+    - All Sites
+    - All SPNSuffixes
+    - All UPNSuffixes
+    - The ForestName
+    - The PartitionsContainer
+    - The Name of the RootDomain
+    - The SchemaMaster
+
+    .PARAMETER ServerName
+    The Name of a Domain Controller
+
+    .PARAMETER Credential
+    A Credential that has access to Domain information
+
+    .PARAMETER ApplicationPartitions
+    Gets only the Application Partitions.
+
+    .PARAMETER DomainNamingMaster
+    Gets only the DomainNamingMaster
+
+    .PARAMETER CrossForestReferences
+    Gets only the CrossForestReferences
+
+    .PARAMETER Domains
+    Gets only the Domains
+
+    .PARAMETER ForestMode
+    Gets only the ForestMode
+
+    .PARAMETER GlobalCatalogServers
+    Gets only the GlobalCatalogServers
+
+    .PARAMETER ForestName
+    Gets only the ForestName
+
+    .PARAMETER PartitionsContainer
+    Gets only the PartitionsContainer
+
+    .PARAMETER RootDomain
+    Gets only the RootDomain
+
+    .PARAMETER SchemaMaster
+    Gets only the SchemaMaster
+
+    .PARAMETER Sites
+    Gets only the Sites in the ActiveDirectory
+
+    .PARAMETER SPNSuffixes
+    Gets only the SPNSuffixes
+
+    .PARAMETER UPNSuffixes
+    Gets only the UPNSuffixes
+
+    .EXAMPLE
+    Get-ADIForest
+    Returns all Information of the Domain in the current user context
+
+    .EXAMPLE
+    $cred = Get-Credential
+    Get-ADIForest -ServerName AD -Credential $cred
+    Returns all information of the Domain based on the credentials
+
+    .EXAMPLE
+    Get-ADIForest -ForestMode
+    Returns only the ForestMode in the current User context
+
+    .EXAMPLE
+    Get-ADIForest -ApplicationPartitions
+    Display all ApplicationPartitions as Objects in the current Domain
+
+    .EXAMPLE
+    Get-ADIForest -ApplicationPartitions -ServerName DC
+    Display all ApplicationPartitions as Objects in the current Domain for the Server DC
+
+    .EXAMPLE
+    Get-ADIForest -DomainNamingMaster
+    Display all DomainNamingMasters as Objects in the current Domain
+
+    .EXAMPLE
+    Get-ADIForest -CrossForestReferences
+    Display all CrossForestReferences as Objects in the current Domain
+
+    .EXAMPLE
+    Get-ADIForest -Domains
+    Display all Domains as Objects in the current Domain
+
+    .NOTES
+    Author: Constantin Hager
+    Date: 05.01.2018
+    #>
+
     [CmdletBinding(DefaultParameterSetName = 'DefaultParameters')]
     param
     (
         [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
-        [string]$ServerName = (Get-ADForest).DomainNamingMaster,
+        [string]$ServerName,
 
         [Parameter(Mandatory = $false, ParameterSetName = 'AdditionalParameters')]
         [pscredential]$Credential,
@@ -66,9 +173,9 @@ function Get-ADIForest
     {
         if (($class.TestADIActiveDirectoryModule()) -eq $true)
         {
-            Write-Error -Message "Please install the Active Directory PowerShell Module for your OS.
+            Write-Error -Message 'Please install the Active Directory PowerShell Module for your OS.
                                   You can install the PowerShell Module for Active Directory by yourself or
-                                  run our Integraded CmdLet Install-ADIActiveDirectoryPowerShellModule."
+                                  run our Integraded CmdLet Install-ADIActiveDirectoryPowerShellModule.'
             exit
         }
     }
@@ -118,7 +225,49 @@ function Get-ADIForest
 
             if ($DomainNamingMasters.Count -eq 0)
             {
-                Write-Output 'No DomainNamingMasters in your Domain.'
+                Write-Output -InputObject 'No DomainNamingMasters in your Domain.'
+            }
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
+        {
+            if ($PSBoundParameters.ContainsKey('Credential'))
+            {
+                $DomainNamingMasters = (Get-ADForest -Server $ServerName -Identity $NameOfForest -Credential $Credential).DomainNamingMaster
+
+                if ($DomainNamingMasters.Count -gt 1)
+                {
+                    $class.GetDomainNamingMaster($DomainNamingMasters)
+                }
+
+                if ($DomainNamingMasters.Count -eq 1)
+                {
+                    $class.GetDomainNamingMaster($DomainNamingMasters)
+                }
+
+                if ($DomainNamingMasters.Count -eq 0)
+                {
+                    Write-Output -InputObject 'No DomainNamingMasters in your Domain.'
+                }
+            }
+            else
+            {
+                $DomainNamingMasters = (Get-ADForest -Server $ServerName -Identity $NameOfForest).DomainNamingMaster
+
+                if ($DomainNamingMasters.Count -gt 1)
+                {
+                    $class.GetDomainNamingMaster($DomainNamingMasters)
+                }
+
+                if ($DomainNamingMasters.Count -eq 1)
+                {
+                    $class.GetDomainNamingMaster($DomainNamingMasters)
+                }
+
+                if ($DomainNamingMasters.Count -eq 0)
+                {
+                    Write-Output -InputObject 'No DomainNamingMasters in your Domain.'
+                }
             }
         }
     }
@@ -142,7 +291,7 @@ function Get-ADIForest
 
             if ($ArrCrossForestReferences.Count -eq 0)
             {
-                Write-Output 'No Trusts in your Domain.'
+                Write-Output -InputObject 'No Trusts in your Domain.'
             }
         }
 
@@ -164,7 +313,7 @@ function Get-ADIForest
 
                 if ($ArrCrossForestReferences.Count -eq 0)
                 {
-                    Write-Output 'No Trusts in your Domain.'
+                    Write-Output -InputObject 'No Trusts in your Domain.'
                 }
             }
             else
@@ -183,7 +332,7 @@ function Get-ADIForest
 
                 if ($ArrCrossForestReferences.Count -eq 0)
                 {
-                    Write-Output 'No Trusts in your Domain.'
+                    Write-Output -InputObject 'No Trusts in your Domain.'
                 }
             }
         }
@@ -208,7 +357,7 @@ function Get-ADIForest
 
             if ($ArrDomains.Count -eq 0)
             {
-                Write-Output 'No Domains in your Domain'
+                Write-Output -InputObject 'No Domains in your Domain'
             }
         }
 
@@ -230,7 +379,7 @@ function Get-ADIForest
 
                 if ($ArrDomains.Count -eq 0)
                 {
-                    Write-Output 'No Domains in your Domain.'
+                    Write-Output -InputObject 'No Domains in your Domain.'
                 }
             }
             else
@@ -249,7 +398,7 @@ function Get-ADIForest
 
                 if ($ArrDomains.Count -eq 0)
                 {
-                    Write-Output 'No Domains in your Domain.'
+                    Write-Output -InputObject 'No Domains in your Domain.'
                 }
             }
         }
@@ -268,7 +417,7 @@ function Get-ADIForest
 
             if ([String]::IsNullOrEmpty($DomainForestMode))
             {
-                Write-Output 'No Forestmode in your Domain.'
+                Write-Output -InputObject 'No Forestmode in your Domain.'
             }
         }
 
@@ -285,7 +434,7 @@ function Get-ADIForest
 
                 if ([String]::IsNullOrEmpty($DomainForestMode))
                 {
-                    Write-Output 'No Forestmode in your Domain.'
+                    Write-Output -InputObject 'No Forestmode in your Domain.'
                 }
             }
             else
@@ -299,7 +448,7 @@ function Get-ADIForest
 
                 if ([String]::IsNullOrEmpty($DomainForestMode))
                 {
-                    Write-Output 'No Forestmode in your Domain.'
+                    Write-Output -InputObject 'No Forestmode in your Domain.'
                 }
             }
         }
@@ -308,23 +457,45 @@ function Get-ADIForest
     if ($PSBoundParameters.ContainsKey('GlobalCatalogServers'))
     {
         $ArrGlobalCatalogServers = New-Object -TypeName System.Collections.ArrayList
-        if ($PSCmdlet.ParameterSetName -eq 'DefaultParameters')
+        if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
         {
-            $ArrGlobalCatalogServers = (Get-ADForest -Identity $NameOfForest).GlobalCatalogs
-
-            if ($ArrGlobalCatalogServers.Count -gt 1)
+            if ($PSBoundParameters.ContainsKey('Credential'))
             {
-                $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                $ArrGlobalCatalogServers = (Get-ADForest -Server $ServerName -Identity $NameOfForest -Credential $Credential).GlobalCatalogs
+
+                if ($ArrGlobalCatalogServers.Count -gt 1)
+                {
+                    $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                }
+
+                if ($ArrGlobalCatalogServers.Count -eq 1)
+                {
+                    $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                }
+
+                if ($ArrGlobalCatalogServers.Count -eq 0)
+                {
+                    Write-Output -InputObject 'No Trusts in your Domain.'
+                }
             }
-
-            if ($ArrGlobalCatalogServers.Count -eq 1)
+            else
             {
-                $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
-            }
+                $ArrGlobalCatalogServers = (Get-ADForest -Server $ServerName -Identity $NameOfForest).GlobalCatalogs
 
-            if ($ArrGlobalCatalogServers.Count -eq 0)
-            {
-                Write-Output 'No Trusts in your Domain.'
+                if ($ArrGlobalCatalogServers.Count -gt 1)
+                {
+                    $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                }
+
+                if ($ArrGlobalCatalogServers.Count -eq 1)
+                {
+                    $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                }
+
+                if ($ArrGlobalCatalogServers.Count -eq 0)
+                {
+                    Write-Output -InputObject 'No Trusts in your Domain.'
+                }
             }
         }
     }
@@ -368,7 +539,7 @@ function Get-ADIForest
 
             if ($ArrSites.Count -eq 0)
             {
-                Write-Output 'No Domains in your Domain'
+                Write-Output -InputObject 'No Domains in your Domain'
             }
         }
 
@@ -390,7 +561,7 @@ function Get-ADIForest
 
                 if ($ArrSites.Count -eq 0)
                 {
-                    Write-Output 'No Sites in your Domain.'
+                    Write-Output -InputObject 'No Sites in your Domain.'
                 }
             }
             else
@@ -409,7 +580,7 @@ function Get-ADIForest
 
                 if ($ArrSites.Count -eq 0)
                 {
-                    Write-Output 'No Sites in your Domain.'
+                    Write-Output -InputObject 'No Sites in your Domain.'
                 }
             }
         }
@@ -434,7 +605,7 @@ function Get-ADIForest
 
             if ($ArrSPN.Count -eq 0)
             {
-                Write-Output 'No Domains in your Domain'
+                Write-Output -InputObject 'No Domains in your Domain'
             }
         }
 
@@ -456,7 +627,7 @@ function Get-ADIForest
 
                 if ($ArrSPN.Count -eq 0)
                 {
-                    Write-Output 'No Sites in your Domain.'
+                    Write-Output -InputObject 'No Sites in your Domain.'
                 }
             }
             else
@@ -475,7 +646,7 @@ function Get-ADIForest
 
                 if ($ArrSPN.Count -eq 0)
                 {
-                    Write-Output 'No Sites in your Domain.'
+                    Write-Output -InputObject 'No Sites in your Domain.'
                 }
             }
         }
@@ -500,7 +671,7 @@ function Get-ADIForest
 
             if ($ArrUPN.Count -eq 0)
             {
-                Write-Output 'No Domains in your Domain'
+                Write-Output -InputObject 'No Domains in your Domain'
             }
         }
 
@@ -522,7 +693,7 @@ function Get-ADIForest
 
                 if ($ArrUPN.Count -eq 0)
                 {
-                    Write-Output 'No Sites in your Domain.'
+                    Write-Output -InputObject 'No Sites in your Domain.'
                 }
             }
             else
@@ -541,50 +712,25 @@ function Get-ADIForest
 
                 if ($ArrUPN.Count -eq 0)
                 {
-                    Write-Output 'No Sites in your Domain.'
+                    Write-Output -InputObject 'No Sites in your Domain.'
                 }
             }
         }
     }
 
-    if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
+    if ($PSBoundParameters.ContainsKey('ServerName'))
     {
-        if ($PSBoundParameters.ContainsKey('Credential'))
+        if ($PSCmdlet.ParameterSetName -eq 'AdditionalParameters')
         {
-            $ArrGlobalCatalogServers = (Get-ADForest -Server $ServerName -Identity $NameOfForest -Credential $Credential).GlobalCatalogs
-
-            if ($ArrGlobalCatalogServers.Count -gt 1)
+            if ($PSBoundParameters.ContainsKey('Credential'))
             {
-                $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
+                Write-Warning -Message 'No Parameters from my CmdLet specified. Return Results from my internal Class.'
+                $overview.ReturnOverviewWithCredentials($Credential)
             }
-
-            if ($ArrGlobalCatalogServers.Count -eq 1)
+            else
             {
-                $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
-            }
-
-            if ($ArrGlobalCatalogServers.Count -eq 0)
-            {
-                Write-Output 'No Trusts in your Domain.'
-            }
-        }
-        else
-        {
-            $ArrGlobalCatalogServers = (Get-ADForest -Server $ServerName -Identity $NameOfForest).GlobalCatalogs
-
-            if ($ArrGlobalCatalogServers.Count -gt 1)
-            {
-                $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
-            }
-
-            if ($ArrGlobalCatalogServers.Count -eq 1)
-            {
-                $class.GetGlobalCatalogServers($ArrGlobalCatalogServers)
-            }
-
-            if ($ArrGlobalCatalogServers.Count -eq 0)
-            {
-                Write-Output 'No Trusts in your Domain.'
+                Write-Warning -Message 'No Parameters from my CmdLet specified. Return Results from my internal Class.'
+                $overview.ReturnOverview()
             }
         }
     }
@@ -592,6 +738,6 @@ function Get-ADIForest
     if ($PSBoundParameters.Count -eq 0)
     {
         Write-Warning -Message 'No Parameters from my CmdLet specified. Return Results from my internal Class.'
-        $class.ReturnOverview()
+        $overview.ReturnOverview()
     }
 }

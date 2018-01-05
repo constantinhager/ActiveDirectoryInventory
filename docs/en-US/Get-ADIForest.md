@@ -1,7 +1,7 @@
 ---
 external help file: ActiveDirectoryInventory-help.xml
 Module Name: ActiveDirectoryInventory
-online version: 
+online version:
 schema: 2.0.0
 ---
 
@@ -38,38 +38,71 @@ You can return the following as objects:
 - All Global Catalog Servers
     - SiteName of Global Catalog Servers
     - Is the Global Catalog Server reachable?
+- The DomainName
+- All Sites
+- All SPNSuffixes
+- All UPNSuffixes
+- The ForestName
+- The PartitionsContainer
+- The Name of the RootDomain
+- The SchemaMaster
 
 ## EXAMPLES
 
 ### Example 1
+```
+PS C:\> Get-ADIForest
+Returns all Information of the Domain in the current user context
+```
+
+### EXAMPLE 2
+```
+$cred = Get-Credential
+Get-ADIForest -ServerName AD -Credential $cred
+Returns all information of the Domain based on the credentials
+```
+
+### EXAMPLE 3
+```
+Get-ADIForest -ForestMode
+Returns only the ForestMode in the current User context
+```
+
+### EXAMPLE 4
+```
+Get-ADIForest -ApplicationPartitions
+Display all ApplicationPartitions as Objects in the current Domain
+```
+
+### Example 5
 ```
 PS C:\> Get-ADIForest -ApplicationPartitions
 ```
 
 Display all ApplicationPartitions as Objects in the current Domain
 
-### Example 2
+### Example 6
 ```
 PS C:\> Get-ADIForest -ApplicationPartitions -ServerName DC
 ```
 
 Display all ApplicationPartitions as Objects in the current Domain for the Server DC
 
-### Example 3
+### Example 7
 ```
 PS C:\> Get-ADIForest -DomainNamingMaster
 ```
 
 Display all DomainNamingMasters as Objects in the current Domain
 
-### Example 4
+### Example 8
 ```
 PS C:\> Get-ADIForest -CrossForestReferences
 ```
 
 Display all CrossForestReferences as Objects in the current Domain
 
-### Example 5
+### Example 9
 ```
 PS C:\> Get-ADIForest -Domains
 ```
@@ -78,13 +111,13 @@ Display all Domains as Objects in the current Domain
 
 ## PARAMETERS
 
-### -ApplicationPartitions
-Switch to display All ApplicationPartitions as Objects.
+### -ServerName
+One of the Active Directory Domain Controllers in the forest.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: 
+Type: String
+Parameter Sets: AdditionalParameters
+Aliases:
 
 Required: False
 Position: Named
@@ -100,7 +133,7 @@ for accessing the forest.
 ```yaml
 Type: PSCredential
 Parameter Sets: AdditionalParameters
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -109,13 +142,13 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -CrossForestReferences
-Switch to display All CrossForestReferences as Objects.
+### -ApplicationPartitions
+Switch to display All ApplicationPartitions as Objects.
 
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -130,7 +163,22 @@ Switch to display All DomainNamingMasters as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -CrossForestReferences
+Switch to display All CrossForestReferences as Objects.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
 
 Required: False
 Position: Named
@@ -145,7 +193,7 @@ Switch to display All Domains as Objects.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -160,22 +208,7 @@ Switch to display the Forest Mode
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ForestName
-The name of the forest you would like to check
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -192,7 +225,22 @@ and if he is reachable or not.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ForestName
+The name of the forest you would like to check
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
 
 Required: False
 Position: Named
@@ -202,12 +250,12 @@ Accept wildcard characters: False
 ```
 
 ### -PartitionsContainer
-{{Fill PartitionsContainer Description}}
+Switch to display the partitions container
 
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -217,27 +265,12 @@ Accept wildcard characters: False
 ```
 
 ### -RootDomain
-{{Fill RootDomain Description}}
+Switch to display the root domain
 
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -SPNSuffixes
-{{Fill SPNSuffixes Description}}
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -247,27 +280,12 @@ Accept wildcard characters: False
 ```
 
 ### -SchemaMaster
-{{Fill SchemaMaster Description}}
+Switch to display the schema master
 
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ServerName
-One of the Active Directory Domain Controllers in the forest.
-
-```yaml
-Type: String
-Parameter Sets: AdditionalParameters
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -277,12 +295,27 @@ Accept wildcard characters: False
 ```
 
 ### -Sites
-{{Fill Sites Description}}
+Switch to display all sites
 
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -SPNSuffixes
+Switch to display all spnsuffixes
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
 
 Required: False
 Position: Named
@@ -292,12 +325,12 @@ Accept wildcard characters: False
 ```
 
 ### -UPNSuffixes
-{{Fill UPNSuffixes Description}}
+Switch to display all upnsuffixes
 
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: 
+Aliases:
 
 Required: False
 Position: Named
@@ -315,7 +348,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### System.Object
+### ActiveDirectoryInventory Object
+### Overview Object
 
 ## NOTES
 Author: Constantin Hager
